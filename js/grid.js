@@ -110,7 +110,6 @@ Grid.prototype.serialize = function () {
     }
   }
 
-  console.log(cellState)
 
   return {
     size: this.size,

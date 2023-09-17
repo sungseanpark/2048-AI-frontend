@@ -18,33 +18,43 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
 }
 
 // Autoplay the game
+GameManager.prototype.autoPlay = function () {
+  this.autoToggle = !this.autoToggle;
 
-  GameManager.prototype.autoPlay = function () {
-    this.autoToggle = !this.autoToggle;
-  
-    if (this.autoToggle) {
-      this.autoPlayInterval = setInterval(() => {
-        // Make an HTTP GET request to the backend to get a random move
-        fetch('http://localhost:3001/api/move')
-          .then((response) => response.json())
-          .then((data) => {
-            const randomMove = data.move;
-  
-            // Trigger the move
-            this.move(randomMove);
-          })
-          .catch((error) => {
-            console.error('Error fetching random move:', error);
-          });
-      }, 500); // 1000 milliseconds (1 second) interval
-  
-      // Update the button text
-      // this.actuator.autoPlayButton.textContent = 'Stop Auto Play';
-    } else {
-      clearInterval(this.autoPlayInterval); // Stop the interval
-      // this.actuator.autoPlayButton.textContent = 'Auto Play';
-    }
-  };
+  if (this.autoToggle) {
+    this.autoPlayInterval = setInterval(() => {
+      // Get the current grid state as a JSON object
+      const gridState = this.grid.serialize(); // Assuming you have a serialize() method
+
+      // Make an HTTP GET request to the backend to get a random move
+      fetch('http://localhost:3001/api/move', {
+        method: 'POST', // Use POST instead of GET
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ grid: gridState }), // Include the grid state in the request body
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          const randomMove = data.move;
+
+          console.log(randomMove)
+
+          // Trigger the move
+          this.move(randomMove);
+        })
+        .catch((error) => {
+          console.error('Error fetching random move:', error);
+        });
+    }, 500); // 1000 milliseconds (1 second) interval
+
+    // Update the button text
+    // this.actuator.autoPlayButton.textContent = 'Stop Auto Play';
+  } else {
+    clearInterval(this.autoPlayInterval); // Stop the interval
+    // this.actuator.autoPlayButton.textContent = 'Auto Play';
+  }
+};
   
 
 
@@ -145,6 +155,7 @@ GameManager.prototype.serialize = function () {
     score:       this.score,
     over:        this.over,
     won:         this.won,
+    autoToggle:  this.autoToggle,
     keepPlaying: this.keepPlaying
   };
 };
