@@ -1,3 +1,4 @@
+
 function GameManager(size, InputManager, Actuator, StorageManager) {
   this.size           = size; // Size of the grid
   this.inputManager   = new InputManager;
@@ -17,29 +18,35 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
 }
 
 // Autoplay the game
-GameManager.prototype.autoPlay = function () {
 
-  this.autoToggle = !this.autoToggle;
+  GameManager.prototype.autoPlay = function () {
+    this.autoToggle = !this.autoToggle;
+  
+    if (this.autoToggle) {
+      this.autoPlayInterval = setInterval(() => {
+        // Make an HTTP GET request to the backend to get a random move
+        fetch('http://localhost:3001/api/move')
+          .then((response) => response.json())
+          .then((data) => {
+            const randomMove = data.move;
+  
+            // Trigger the move
+            this.move(randomMove);
+          })
+          .catch((error) => {
+            console.error('Error fetching random move:', error);
+          });
+      }, 500); // 1000 milliseconds (1 second) interval
+  
+      // Update the button text
+      // this.actuator.autoPlayButton.textContent = 'Stop Auto Play';
+    } else {
+      clearInterval(this.autoPlayInterval); // Stop the interval
+      // this.actuator.autoPlayButton.textContent = 'Auto Play';
+    }
+  };
+  
 
-  if (this.autoToggle) {
-    this.autoPlayInterval = setInterval(() => {
-      // Execute a random move here
-      const possibleMoves = [0, 1, 2, 3]; // Replace with your logic to get available moves
-      const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-
-      // Trigger the move
-      this.move(randomMove);
-    }, 1000); // 1000 milliseconds (1 second) interval
-
-    // Update the button text
-    // this.actuator.autoPlayButton.textContent = 'Stop Auto Play';
-  } else {
-    clearInterval(this.autoPlayInterval); // Stop the interval
-    // this.actuator.autoPlayButton.textContent = 'Auto Play';
-  }
-
-
-}
 
 // Restart the game
 GameManager.prototype.restart = function () {
